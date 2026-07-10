@@ -52,3 +52,22 @@ def fetch_all_repo_names() -> set[str]:
     client = get_client()
     response = client.table("mcp_registry").select("repo_full_name").execute()
     return {row["repo_full_name"] for row in (response.data or [])}
+
+
+def fetch_tagged_repo_names() -> set[str]:
+    """
+    Repos that already have non-empty capability_tags. Ingestion skips
+    re-tagging these by default to avoid burning Groq quota on reruns —
+    pass --force to the ingestion script to retag everything anyway.
+    """
+    client = get_client()
+    response = (
+        client.table("mcp_registry")
+        .select("repo_full_name, capability_tags")
+        .execute()
+    )
+    return {
+        row["repo_full_name"]
+        for row in (response.data or [])
+        if row.get("capability_tags")
+    }
