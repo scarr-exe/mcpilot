@@ -1,5 +1,4 @@
-# MCP Intelligence Platform
-
+# MCPilot
 The capability planner for AI agents — built as an OKX.AI Agent Service Provider (ASP)
 for the OKX AI Genesis Hackathon.
 
