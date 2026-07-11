@@ -14,18 +14,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from groq import Groq
-
 from app.config import settings
-
-_client: Groq | None = None
-
-
-def get_groq_client() -> Groq:
-    global _client
-    if _client is None:
-        _client = Groq(api_key=settings.GROQ_API_KEY)
-    return _client
+from app.llm.client import get_groq_client
 
 
 SYSTEM_PROMPT = """You are a capability tagging engine for an MCP (Model \
