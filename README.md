@@ -7,7 +7,9 @@ MCPilot is an Agent Service Provider (ASP) built for the OKX AI Genesis Hackatho
 Instead of manually searching registries and guessing at reliability, MCPilot decomposes a goal into technical capabilities, discovers real MCP servers from live GitHub data, ranks them with a transparent formula, explains every recommendation in plain language, and assembles the whole thing into an ordered execution workflow — plus a high-level architecture sketch for the agent that would run it.
 
 **Live MCP endpoint:** `https://mcpilot-production.up.railway.app/mcp`
+
 **Live REST API** (used by the demo landing page): `https://mcpilot-production-ac81.up.railway.app`
+
 **OKX.AI listing:** registered as an A2MCP service (Agent ID #5144), submitted for review
 
 ---
