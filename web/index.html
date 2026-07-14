@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MCPilot — The Capability Planner for AI Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="hud-bar">
+  <div class="hud-brand">
+    <span class="hud-mark">◈</span> MCPILOT
+  </div>
+  <div class="hud-status">
+    <span class="status-dot"></span> LIVE
+  </div>
+  <nav class="hud-links">
+    <a href="https://github.com/scarr-exe/mcpilot" target="_blank" rel="noopener">REPO</a>
+    <a href="https://mcpilot-production.up.railway.app/mcp" target="_blank" rel="noopener">ENDPOINT</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <canvas id="route-canvas" aria-hidden="true"></canvas>
+    <div class="hero-content">
+      <p class="eyebrow">AGENT SERVICE PROVIDER · OKX AI GENESIS HACKATHON</p>
+      <h1>The MCP ecosystem<br>has no map.</h1>
+      <p class="hero-sub">MCPilot plots one — per goal, from real data, every time.</p>
+      <a href="#flight-plan" class="btn-primary">File a flight plan ↓</a>
+    </div>
+  </section>
+
+  <!-- ===== PROBLEM ===== -->
+  <section class="problem">
+    <div class="section-inner">
+      <p class="eyebrow">THE PROBLEM</p>
+      <h2>Hundreds of MCP servers now exist. Finding the right one is harder than using it.</h2>
+      <p class="problem-body">
+        Which server should you use? Are there better alternatives? Which combination
+        actually solves your task, in what order, and why? MCPilot answers all of it —
+        from a single goal, in plain English.
+      </p>
+      <div class="readouts">
+        <div class="readout">
+          <span class="readout-value" id="stat-servers">106</span>
+          <span class="readout-label">MCP SERVERS TRACKED</span>
+        </div>
+        <div class="readout">
+          <span class="readout-value">GITHUB</span>
+          <span class="readout-label">LIVE DISCOVERY SOURCE</span>
+        </div>
+        <div class="readout">
+          <span class="readout-value">0 GUESSED</span>
+          <span class="readout-label">METRICS INVENTED</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FLIGHT PLAN STAGES (FEATURES) ===== -->
+  <section class="stages">
+    <div class="section-inner">
+      <p class="eyebrow">HOW IT FLIES</p>
+      <h2>Six stages. One call.</h2>
+      <div class="stage-strip">
+        <div class="stage">
+          <span class="stage-id">WP-1</span>
+          <span class="stage-name">DECOMPOSE</span>
+          <p>Breaks your goal into atomic technical capabilities.</p>
+        </div>
+        <div class="stage">
+          <span class="stage-id">WP-2</span>
+          <span class="stage-name">DISCOVER</span>
+          <p>Matches each capability against real MCP servers, sourced live from GitHub.</p>
+        </div>
+        <div class="stage">
+          <span class="stage-id">WP-3</span>
+          <span class="stage-name">RANK</span>
+          <p>Deterministic scoring — stars, commit recency, issue health. No invented ratings.</p>
+        </div>
+        <div class="stage">
+          <span class="stage-id">WP-4</span>
+          <span class="stage-name">EXPLAIN</span>
+          <p>Every recommendation cites the real numbers behind its score.</p>
+        </div>
+        <div class="stage">
+          <span class="stage-id">WP-5</span>
+          <span class="stage-name">PLOT WORKFLOW</span>
+          <p>Assembles matched capabilities into an ordered execution sequence.</p>
+        </div>
+        <div class="stage">
+          <span class="stage-id">WP-6</span>
+          <span class="stage-name">ARCHITECT</span>
+          <p>Sketches the agent architecture needed to run the plan.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LIVE DEMO ===== -->
+  <section class="flight-plan" id="flight-plan">
+    <div class="section-inner">
+      <p class="eyebrow">FILE A FLIGHT PLAN</p>
+      <h2>Give it a goal. Get a real plan back.</h2>
+
+      <form id="plan-form" class="plan-form">
+        <input
+          type="text"
+          id="goal-input"
+          placeholder="e.g. build a web scraping agent that saves results to a database"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" id="submit-btn" class="btn-primary">Plot route</button>
+      </form>
+
+      <div id="status-line" class="status-line" aria-live="polite"></div>
+
+      <div id="result-panel" class="result-panel hidden">
+        <div class="tabs">
+          <button class="tab active" data-tab="briefing">BRIEFING</button>
+          <button class="tab" data-tab="raw">RAW OUTPUT</button>
+        </div>
+        <div id="tab-briefing" class="tab-panel active"></div>
+        <pre id="tab-raw" class="tab-panel"><code id="raw-json"></code></pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="section-inner footer-inner">
+    <div>
+      <span class="hud-mark">◈</span> MCPILOT
+      <p class="footer-tagline">The capability planner for AI agents.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/scarr-exe/mcpilot" target="_blank" rel="noopener">github.com/scarr-exe/mcpilot</a>
+      <a href="https://mcpilot-production.up.railway.app/mcp" target="_blank" rel="noopener">mcpilot-production.up.railway.app/mcp</a>
+    </div>
+    <p class="footer-note">Built for the OKX AI Genesis Hackathon.</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

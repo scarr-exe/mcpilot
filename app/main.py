@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.models import PlanRequest, PlanResponse
@@ -21,6 +22,16 @@ app = FastAPI(
     description="The capability planner for AI agents — decomposes a goal, "
     "discovers and ranks real MCP servers, and assembles an execution workflow.",
     version="0.1.0",
+)
+
+# Allows the demo landing page (web/) to call this API directly from the
+# browser. Fine for this read-mostly, no-auth endpoint — tighten
+# allow_origins to a specific domain if this ever needs to be locked down.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
 )
 
 
