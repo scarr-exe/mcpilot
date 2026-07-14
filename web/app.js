@@ -1,5 +1,5 @@
 // ===== CONFIG =====
-const API_BASE = "https://mcpilot-production.up.railway.app";
+const API_BASE = "https://mcpilot-production-ac81.up.railway.app";
 
 // ===== HERO: route-plotting canvas =====
 // Scattered, unlabeled nodes (the chaotic MCP ecosystem) resolve into a
@@ -8,12 +8,15 @@ const API_BASE = "https://mcpilot-production.up.railway.app";
 (function heroCanvas() {
   const canvas = document.getElementById("route-canvas");
   const ctx = canvas.getContext("2d");
+  const heroEl = canvas.parentElement;
+  const reticle = document.getElementById("hero-reticle");
+  const coordsEl = document.getElementById("reticle-coords");
   let w, h, dpr;
 
   function resize() {
     dpr = window.devicePixelRatio || 1;
-    w = canvas.parentElement.clientWidth;
-    h = canvas.parentElement.clientHeight;
+    w = heroEl.clientWidth;
+    h = heroEl.clientHeight;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + "px";
@@ -25,16 +28,31 @@ const API_BASE = "https://mcpilot-production.up.railway.app";
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // scattered background nodes (the "unmapped ecosystem")
+  // pointer tracking for parallax + HUD reticle readout
+  let pointer = { x: 0.5, y: 0.5, active: false };
+  let parallax = { x: 0, y: 0 }; // eased toward pointer offset for smooth drift
+
+  heroEl.addEventListener("pointermove", (e) => {
+    const rect = heroEl.getBoundingClientRect();
+    pointer.x = (e.clientX - rect.left) / rect.width;
+    pointer.y = (e.clientY - rect.top) / rect.height;
+    pointer.active = true;
+
+    reticle.style.left = e.clientX - rect.left + "px";
+    reticle.style.top = e.clientY - rect.top + "px";
+    coordsEl.textContent = `${(pointer.x * 100).toFixed(1)}, ${(pointer.y * 100).toFixed(1)}`;
+  });
+  heroEl.addEventListener("pointerleave", () => { pointer.active = false; });
+
   const scatterCount = 46;
   const scatter = Array.from({ length: scatterCount }, () => ({
     x: Math.random(),
     y: Math.random(),
     r: 1 + Math.random() * 1.6,
     phase: Math.random() * Math.PI * 2,
+    depth: 0.4 + Math.random() * 0.8, // parallax depth multiplier
   }));
 
-  // the plotted flight path — 5 waypoints, positions as fractions of canvas
   const route = [
     { x: 0.08, y: 0.78 },
     { x: 0.27, y: 0.42 },
@@ -43,34 +61,43 @@ const API_BASE = "https://mcpilot-production.up.railway.app";
     { x: 0.9, y: 0.4 },
   ];
 
-  let progress = 0; // 0..1, how much of the route is drawn in
-  const animDuration = prefersReducedMotion ? 0 : 2600;
+  let progress = 0;
+  const animDuration = prefersReducedMotion ? 0 : 2800;
   const startTime = performance.now();
 
   function draw(now) {
     ctx.clearRect(0, 0, w, h);
 
     const t = prefersReducedMotion ? 1 : Math.min(1, (now - startTime) / animDuration);
-    progress = easeOutCubic(t);
+    progress = easeOutQuint(t);
 
-    // background scatter, gently pulsing
+    // ease parallax toward pointer target for smooth, non-jittery drift
+    const targetX = pointer.active ? (pointer.x - 0.5) * 18 : 0;
+    const targetY = pointer.active ? (pointer.y - 0.5) * 14 : 0;
+    parallax.x += (targetX - parallax.x) * 0.06;
+    parallax.y += (targetY - parallax.y) * 0.06;
+
     scatter.forEach((n) => {
       const flicker = 0.35 + 0.25 * Math.sin(now / 900 + n.phase);
+      const px = n.x * w + parallax.x * n.depth;
+      const py = n.y * h + parallax.y * n.depth;
       ctx.beginPath();
-      ctx.arc(n.x * w, n.y * h, n.r, 0, Math.PI * 2);
+      ctx.arc(px, py, n.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(130, 145, 160, ${flicker * 0.5})`;
       ctx.fill();
     });
 
-    // route line, drawn progressively
-    const pts = route.map((p) => ({ x: p.x * w, y: p.y * h }));
+    const pts = route.map((p) => ({
+      x: p.x * w + parallax.x * 0.3,
+      y: p.y * h + parallax.y * 0.3,
+    }));
     const totalSegs = pts.length - 1;
     const segProgress = progress * totalSegs;
 
     ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(110, 231, 249, 0.55)";
     ctx.shadowColor = "rgba(110, 231, 249, 0.5)";
-    ctx.shadowBlur = 8;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     for (let i = 0; i < totalSegs; i++) {
@@ -84,7 +111,6 @@ const API_BASE = "https://mcpilot-production.up.railway.app";
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // waypoint nodes — lit up once the route reaches them
     pts.forEach((p, i) => {
       const reached = segProgress >= i;
       const r = i === pts.length - 1 ? 5 : 3.5;
@@ -93,21 +119,20 @@ const API_BASE = "https://mcpilot-production.up.railway.app";
       ctx.fillStyle = reached ? "#e7eef5" : "rgba(130, 145, 160, 0.5)";
       ctx.fill();
       if (reached) {
+        const ringPulse = 5 + Math.sin(now / 500 + i) * 1.5;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r + 5, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(110, 231, 249, 0.35)";
+        ctx.arc(p.x, p.y, r + ringPulse, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(110, 231, 249, 0.3)";
         ctx.lineWidth = 1;
         ctx.stroke();
       }
     });
 
-    if (t < 1 || !prefersReducedMotion) {
-      requestAnimationFrame(draw);
-    }
+    requestAnimationFrame(draw);
   }
 
-  function easeOutCubic(x) {
-    return 1 - Math.pow(1 - x, 3);
+  function easeOutQuint(x) {
+    return 1 - Math.pow(1 - x, 5);
   }
 
   requestAnimationFrame(draw);

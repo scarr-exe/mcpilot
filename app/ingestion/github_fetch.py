@@ -26,6 +26,21 @@ GITHUB_API = "https://api.github.com"
 SEARCH_TOPICS = ["mcp-server", "model-context-protocol"]
 OFFICIAL_LIST_REPO = "modelcontextprotocol/servers"
 
+# Topic search alone misses repos that are real MCP servers but weren't
+# tagged with "mcp-server"/"model-context-protocol" on GitHub. These
+# keyword searches catch capability-specific gaps (e.g. "slack mcp",
+# "github mcp") that topic search doesn't reach. Extend this list as
+# specific coverage gaps are found via the live registry search.
+KEYWORD_SEARCHES = [
+    "slack mcp server",
+    "github mcp server",
+    "webhook mcp server",
+    "notification mcp server",
+    "summarization mcp server",
+    "pdf mcp server",
+    "database mcp server",
+]
+
 
 def _headers() -> dict[str, str]:
     headers = {"Accept": "application/vnd.github+json"}
@@ -65,6 +80,21 @@ def search_repos_by_topic(client: httpx.Client, topic: str, per_page: int = 50) 
         client,
         f"{GITHUB_API}/search/repositories",
         params={"q": f"topic:{topic}", "sort": "stars", "order": "desc", "per_page": per_page},
+    )
+    return response.json().get("items", [])
+
+
+def search_repos_by_keyword(client: httpx.Client, keyword: str, per_page: int = 15) -> list[dict[str, Any]]:
+    """
+    GitHub search API: free-text search across name/description, catching
+    real MCP servers that topic search misses because they weren't
+    tagged with "mcp-server"/"model-context-protocol" on GitHub.
+    """
+    query = f'{keyword} in:name,description'
+    response = _get(
+        client,
+        f"{GITHUB_API}/search/repositories",
+        params={"q": query, "sort": "stars", "order": "desc", "per_page": per_page},
     )
     return response.json().get("items", [])
 
@@ -154,6 +184,10 @@ def discover_all() -> list[dict[str, Any]]:
 
         for topic in SEARCH_TOPICS:
             for repo in search_repos_by_topic(client, topic):
+                candidates.add(repo["full_name"])
+
+        for keyword in KEYWORD_SEARCHES:
+            for repo in search_repos_by_keyword(client, keyword):
                 candidates.add(repo["full_name"])
 
         for full_name in fetch_official_server_list(client):

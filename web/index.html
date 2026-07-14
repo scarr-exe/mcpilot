@@ -21,8 +21,12 @@
     <span class="status-dot"></span> LIVE
   </div>
   <nav class="hud-links">
-    <a href="https://github.com/scarr-exe/mcpilot" target="_blank" rel="noopener">REPO</a>
-    <a href="https://mcpilot-production.up.railway.app/mcp" target="_blank" rel="noopener">ENDPOINT</a>
+    <a href="https://github.com/scarr-exe/mcpilot" target="_blank" rel="noopener" title="View source on GitHub" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.26 5.68.42.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .3.21.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+    </a>
+    <a href="https://mcpilot-production.up.railway.app/mcp" target="_blank" rel="noopener" title="Live MCP endpoint" aria-label="Live MCP endpoint">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
+    </a>
   </nav>
 </header>
 
@@ -31,6 +35,10 @@
   <!-- ===== HERO ===== -->
   <section class="hero">
     <canvas id="route-canvas" aria-hidden="true"></canvas>
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="hero-reticle" id="hero-reticle" aria-hidden="true">
+      <span class="reticle-coords" id="reticle-coords">00.0, 00.0</span>
+    </div>
     <div class="hero-content">
       <p class="eyebrow">AGENT SERVICE PROVIDER · OKX AI GENESIS HACKATHON</p>
       <h1>The MCP ecosystem<br>has no map.</h1>
@@ -139,16 +147,27 @@
 </main>
 
 <footer class="site-footer">
+  <div class="footer-grid" aria-hidden="true"></div>
   <div class="section-inner footer-inner">
-    <div>
+    <div class="footer-col footer-brand">
       <span class="hud-mark">◈</span> MCPILOT
-      <p class="footer-tagline">The capability planner for AI agents.</p>
+      <p class="footer-tagline">The capability planner for AI agents.<br>Built for the OKX AI Genesis Hackathon.</p>
     </div>
-    <div class="footer-links">
-      <a href="https://github.com/scarr-exe/mcpilot" target="_blank" rel="noopener">github.com/scarr-exe/mcpilot</a>
-      <a href="https://mcpilot-production.up.railway.app/mcp" target="_blank" rel="noopener">mcpilot-production.up.railway.app/mcp</a>
+    <div class="footer-col">
+      <p class="footer-heading">SOURCE</p>
+      <a href="https://github.com/scarr-exe/mcpilot" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.26 5.68.42.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .3.21.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+        github.com/scarr-exe/mcpilot
+      </a>
     </div>
-    <p class="footer-note">Built for the OKX AI Genesis Hackathon.</p>
+    <div class="footer-col">
+      <p class="footer-heading">ENDPOINT</p>
+      <a href="https://mcpilot-production.up.railway.app/mcp" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>
+        mcpilot-production.up.railway.app/mcp
+      </a>
+      <p class="footer-status"><span class="status-dot"></span> OPERATIONAL</p>
+    </div>
   </div>
 </footer>
 
