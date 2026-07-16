@@ -104,11 +104,30 @@ def explain_ranking(capability: str, ranked_candidates: list[dict[str, Any]]) ->
 
 
 def explain_all(ranked: dict[str, list[dict[str, Any]]]) -> dict[str, dict[str, str]]:
-    """Applies explain_ranking to every capability's ranked candidate list."""
-    return {
-        capability: explain_ranking(capability, candidates)
-        for capability, candidates in ranked.items()
-    }
+    """
+    Applies explain_ranking to every capability's ranked candidate list,
+    running all per-capability LLM calls concurrently to minimise latency.
+    """
+    if not ranked:
+        return {}
+
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    results: dict[str, dict[str, str]] = {}
+    with ThreadPoolExecutor(max_workers=min(len(ranked), 6)) as executor:
+        future_to_cap = {
+            executor.submit(explain_ranking, cap, candidates): cap
+            for cap, candidates in ranked.items()
+        }
+        for future in as_completed(future_to_cap):
+            cap = future_to_cap[future]
+            try:
+                results[cap] = future.result()
+            except Exception as exc:
+                # Surface the error but don't let one capability kill the rest
+                print(f"  [explain] Unexpected error for '{cap}': {exc}")
+                results[cap] = {}
+    return results
 
 
 if __name__ == "__main__":

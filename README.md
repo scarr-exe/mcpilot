@@ -6,7 +6,7 @@ MCPilot is an Agent Service Provider (ASP) built for the OKX AI Genesis Hackatho
 
 Instead of manually searching registries and guessing at reliability, MCPilot decomposes a goal into technical capabilities, discovers real MCP servers from live GitHub data, ranks them with a transparent formula, explains every recommendation in plain language, and assembles the whole thing into an ordered execution workflow — plus a high-level architecture sketch for the agent that would run it.
 
-**Live MCP endpoint:** `https://mcpilot-production.up.railway.app/mcp`
+**Live MCP endpoint:** `https://mcpilot-production.up.railway.app/sse`
 **Live REST API** (used by the demo landing page): `https://mcpilot-production-ac81.up.railway.app`
 **OKX.AI listing:** registered as an A2MCP service (Agent ID #5144), submitted for review
 
@@ -88,7 +88,7 @@ This is the one place MCPilot is candid about a limitation: the *ranking and mat
 | Layer | Choice |
 |---|---|
 | Backend | Python, FastAPI |
-| MCP layer | FastMCP (wraps the FastAPI app directly) |
+| MCP layer | FastMCP (wraps the FastAPI app directly, SSE transport) |
 | Database | Supabase (Postgres, full-text search via a `tsvector` RPC) |
 | LLM | Groq (`llama-3.3-70b-versatile`) — decomposition, explanation, workflow, architecture |
 | Registry source | GitHub REST API — live, public, no scraping of registries without APIs |
@@ -263,7 +263,7 @@ CORS is enabled on the FastAPI app (`allow_origins=["*"]`) specifically so this 
 
 ### As an MCP tool
 
-The same functionality is exposed as an MCP tool (`plan_plan_post`) reachable at `https://mcpilot-production.up.railway.app/mcp` via streamable-HTTP transport — no separate integration needed, FastMCP generates it directly from the FastAPI route. Verified working end-to-end via MCP Inspector and via a live agent (Antigravity) calling it as a configured MCP server.
+The same functionality is exposed as an MCP tool (`plan_plan_post`) reachable at `https://mcpilot-production.up.railway.app/sse` via SSE transport — no separate integration needed, FastMCP generates it directly from the FastAPI route. SSE (2024-11-05 spec) is used instead of streamable-HTTP for maximum client compatibility. Verified working end-to-end via MCP Inspector and via a live agent (Antigravity) calling it as a configured MCP server.
 
 ---
 
@@ -271,16 +271,18 @@ The same functionality is exposed as an MCP tool (`plan_plan_post`) reachable at
 
 Deployed on Railway, HTTPS provided automatically, as **two services built from the same repo**:
 
-1. **`mcpilot-production`** — runs `python -m app.mcp_server` with `MCP_TRANSPORT=http`. This is the actual ASP endpoint submitted to OKX.AI, serving MCP protocol traffic only at `/mcp`.
-2. **`mcpilot-production-ac81`** — runs `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Plain REST API, used exclusively by the demo landing page (`web/`), since FastMCP's `/mcp`-only wrapping doesn't expose browsable REST routes.
+1. **`mcpilot-production`** — runs `python -m app.mcp_server` with `MCP_TRANSPORT=sse`. This is the actual ASP endpoint submitted to OKX.AI, serving MCP protocol traffic at `/sse` via SSE transport.
+2. **`mcpilot-production-ac81`** — runs `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Plain REST API, used exclusively by the demo landing page (`web/`), since FastMCP's SSE wrapping doesn't expose browsable REST routes.
 
 `railway.json` intentionally contains no `startCommand` — each service's start command is set independently in its Railway Settings, since both services build from the same `railway.json` and would otherwise be forced to match.
 
 `app/mcp_server.py` switches transport based on environment:
 - No `MCP_TRANSPORT` set → stdio (local dev, MCP Inspector)
-- `MCP_TRANSPORT=http` → streamable-HTTP on `$PORT` (production)
+- `MCP_TRANSPORT=sse` → SSE transport on `$PORT` at `/sse` (production)
 
-Required environment variables on **both** services: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GROQ_API_KEY`, `GITHUB_TOKEN`. Only the MCP service additionally needs `MCP_TRANSPORT=http`.
+Required environment variables on **both** services: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GROQ_API_KEY`, `GITHUB_TOKEN`. Only the MCP service additionally needs `MCP_TRANSPORT=sse`.
+
+**Keeping Railway warm:** Railway's hobby tier spins down idle services after ~5 min, adding a cold-start penalty of 5–10 s to the first request. Point a free [UptimeRobot](https://uptimerobot.com) monitor at `https://mcpilot-production.up.railway.app/health` with a 5-minute interval to prevent cold starts during OKX review.
 
 ---
 
