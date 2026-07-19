@@ -1,4 +1,8 @@
+[providers]
 providers = ["python", "node"]
 
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
 [variables]
-NIXPACKS_NODE_VERSION = "22.14.0"
+NODE_VERSION = "22.13.0"
