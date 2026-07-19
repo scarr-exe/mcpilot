@@ -1,6 +1,4 @@
 providers = ["python", "node"]
 
-[
-variables
-]
+[variables]
 NIXPACKS_NODE_VERSION = "22"
